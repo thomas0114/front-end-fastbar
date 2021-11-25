@@ -1,0 +1,27 @@
+
+#sidebar .pro-inner-list-item{
+    background-color: white;
+
+}
+
+#sidebar .pro-sidebar > .pro-sidebar-inner{
+    background-color: white;
+
+}
+#sidebar{
+    border-right: 2px solid #F0F0F0;
+    
+}
+
+#sidebar1{
+    background-color: rgb(39 38 44);
+
+}
+
+#sidebar1{
+    border-right: 2px solid #2ba55d;
+}
+
+.pro-sidebar{
+    transition: width, left, right, 0.0s;
+}
