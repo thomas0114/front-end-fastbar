@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
 import Mainpage from "./pages/mainpage/mainpage"
 import Header from "./pages/header/header"
 import Sidebar from './pages/sidebar/sidebar';
+
 import { Web3ReactProvider } from '@web3-react/core'
 import Web3 from 'web3'
 
@@ -15,6 +16,7 @@ function getLibrary(provider) {
 function App() {
   const [flag_sidebar, set_sidebar] = useState(false);
   const [ctheme, setTheme] = useState(true);
+  const [connect_wallet, set_connect] = useState(false);
   const styles = {
     contentDiv: {
       display: "flex",
@@ -29,7 +31,7 @@ function App() {
   return (
     <>
       <Web3ReactProvider getLibrary={getLibrary}>
-        <Header flag_sidebar={flag_sidebar} set_sidebar={set_sidebar} ctheme={ctheme}></Header>
+        <Header flag_sidebar={flag_sidebar} set_sidebar={set_sidebar} ctheme={ctheme} set_connect={set_connect}></Header>
         <div style={styles.contentDiv} >
           <div className="sidebar1" style={{ display: "none" }} >
             <Sidebar flag_sidebar={1} ctheme={ctheme} setTheme={setTheme}></Sidebar>
@@ -37,7 +39,7 @@ function App() {
           <div className="sidebar2">
             <Sidebar flag_sidebar={flag_sidebar} ctheme={ctheme} setTheme={setTheme}></Sidebar>
           </div>
-          <Mainpage></Mainpage>
+          <Mainpage ctheme={ctheme} connect_wallet={connect_wallet}></Mainpage>
         </div>
       </Web3ReactProvider>
     </>

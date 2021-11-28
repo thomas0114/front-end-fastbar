@@ -1,4 +1,4 @@
-pragma solidity 0.6.0;
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -13,7 +13,7 @@ contract FastBar is ERC20("FastBar", "xFAST"){
         fast = _fast;
     }
 
-    // Enter the bar. Pay some SUSHIs. Earn some shares.
+    // Enter the bar. Pay some FASTs. Earn some shares.
     function enter(uint256 _amount) public {
         uint256 totalFast = fast.balanceOf(address(this));
         uint256 totalShares = totalSupply();
@@ -26,7 +26,7 @@ contract FastBar is ERC20("FastBar", "xFAST"){
         fast.transferFrom(msg.sender, address(this), _amount);
     }
 
-    // Leave the bar. Claim back your SUSHIs.
+    // Leave the bar. Claim back your FASTs.
     function leave(uint256 _share) public {
         uint256 totalShares = totalSupply();
         uint256 what = _share.mul(fast.balanceOf(address(this))).div(totalShares);
