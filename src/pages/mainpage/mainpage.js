@@ -1,5 +1,5 @@
 import React from "react";
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Box, Input, Modal } from '@material-ui/core'
 import styled from 'styled-components';
 
@@ -10,16 +10,14 @@ import leopard1 from '../../images/leopard1.png';
 import { lightTheme, darkTheme } from "../../theme/theme";
 import Web3 from 'web3'
 import { ethers } from 'ethers'
-import Token from '../../hardhat/artifacts/contracts/Token.sol/FastBar.json'
-import { FAST_ABI } from '../../utils/abi';
+import { FASTBAR, FASTTOKEN } from '../../utils/abi';
 
 
-const Mainpage = ({ ctheme, connect_wallet }) => {
+const Mainpage = ({ ctheme, connect_wallet}) => {
     let web3;
     const [stake, set_stake] = useState(false)
     const [amount, set_amount] = useState('');
-    const [max_value, set_max_value] = useState(0);
-    const token_address = '0xaC17fdE7c947319C3b4Dc6096f0e03D7F3F909A6';
+    const token_address = '0xC6C76947953134160CA40de6015EAdfC864BDd1a';
     const token_fast = '0x1160fe27e5c39284f6aebdec4ad2c1dc6f118d2b';
     const style1 = {
         position: 'absolute',
@@ -37,6 +35,7 @@ const Mainpage = ({ ctheme, connect_wallet }) => {
         flexDirection: 'column',
     };
 
+    const [rate, set_rate] = useState(0);
     const [open, setOpen] = useState(false);
     const [process, set_process] = useState("Processing...");
     const [process1, set_process1] = useState("Processing...");
@@ -74,8 +73,8 @@ const Mainpage = ({ ctheme, connect_wallet }) => {
             window.web3 = new Web3(window.web3.currentProvider);
             await window.ethereum.enable();
             const accounts = await window.web3.eth.getAccounts();
-            var stake_fast = new window.web3.eth.Contract(Token.abi, token_address);
-            var fast = new window.web3.eth.Contract(FAST_ABI, token_fast);
+            var stake_fast = new window.web3.eth.Contract(FASTBAR, token_address);
+            var fast = new window.web3.eth.Contract(FASTTOKEN, token_fast);
             let temp = (amount * Math.pow(10, 18)).toString(16);
             let temp1 = (amount * Math.pow(10, 18));
             let stake1 = '0x' + temp;
@@ -88,6 +87,7 @@ const Mainpage = ({ ctheme, connect_wallet }) => {
                     // },2000);
                 }).catch((error) => {
                     set_process("Fault! Try again.");
+                    set_amount('');
                     setTimeout(() => {
                         handleClose();
                     }, 2000);
@@ -96,6 +96,7 @@ const Mainpage = ({ ctheme, connect_wallet }) => {
                     setTimeout(() => {
                         handleClose();
                     }, 2000);
+                    set_amount('');
                     set_process1("Success!");
                 }).catch((error) => {
                     set_process1("Fault! Try again.");
@@ -107,16 +108,22 @@ const Mainpage = ({ ctheme, connect_wallet }) => {
             else {
                 await stake_fast.methods.leave(stake1).send({ from: accounts[0] }).then(async (res) => {
                     set_process1("Success!");
+                    set_amount('');
                     setTimeout(() => {
                         handleClose();
                     }, 2000);
                 }).catch((error) => {
                     set_process1("Fault! Try again.");
+                    set_amount('');
                     setTimeout(() => {
                         handleClose();
                     }, 2000);
                 });
             }
+            const temp_xfast = await stake_fast.methods.totalSupply().call();
+            const temp_fast = await fast.methods.balanceOf(accounts[0]).call();
+            const temp_rate = (window.web3.utils.fromWei(temp_xfast, 'ether'))/(window.web3.utils.fromWei(temp_fast, 'ether'));
+            set_rate(temp_rate.toFixed(9));
         }
 
     }
@@ -126,16 +133,17 @@ const Mainpage = ({ ctheme, connect_wallet }) => {
             alert("Please connect wallet.");
             return;
         }
-        else{
+        else {
             var max_xfast, max_fast;
             window.web3 = new Web3(window.web3.currentProvider);
             await window.ethereum.enable();
             const accounts = await window.web3.eth.getAccounts();
-            var stake_fast = new window.web3.eth.Contract(Token.abi, token_address)
-            var fast = new window.web3.eth.Contract(FAST_ABI, token_fast);
+            var stake_fast = new window.web3.eth.Contract(FASTBAR, token_address)
+            var fast = new window.web3.eth.Contract(FASTTOKEN, token_fast);
             if (!stake) {
                 max_fast = await fast.methods.balanceOf(accounts[0]).call();
-                set_amount(window.web3.utils.fromWei(max_fast,'ether'));
+                let max_temp = window.web3.utils.fromWei(max_fast, 'ether');
+                set_amount(parseFloat(max_temp));
             }
             else {
                 max_xfast = await stake_fast.methods.balanceOf(accounts[0]).call();
@@ -143,12 +151,30 @@ const Mainpage = ({ ctheme, connect_wallet }) => {
                 set_amount(window.web3.utils.fromWei(max_xfast, 'ether'));
             }
         }
-        
+
     }
 
+
+
+    useEffect(async() => {
+        if(connect_wallet)
+        {
+            window.web3 = new Web3(window.web3.currentProvider);
+            const accounts = await window.web3.eth.getAccounts();
+            const stake_fast = new window.web3.eth.Contract(FASTBAR, token_address);
+            const fast = new window.web3.eth.Contract(FASTTOKEN, token_fast);
+            const temp_xfast = await stake_fast.methods.totalSupply().call();
+            const temp_fast = await fast.methods.balanceOf(accounts[0]).call();
+            const temp_rate = (window.web3.utils.fromWei(temp_xfast, 'ether'))/(window.web3.utils.fromWei(temp_fast, 'ether'));
+            set_rate(temp_rate.toFixed(9));
+        }
+        else{
+            set_rate(0);
+        }
+    }, [connect_wallet, set_rate])
     return (
         <StyledContainer ctheme={ctheme ? 1 : 0} ltheme={lightTheme} dtheme={darkTheme}>
-            <Staking width="50%" display="flex" flexDirection="column" alignItems="center" borderRadius="30px" ctheme={ctheme ? 1 : 0}>
+            <Staking display="flex" flexDirection="column" alignItems="center" borderRadius="30px" ctheme={ctheme ? 1 : 0}>
                 {/* <Box display="flex" marginTop="5%" alignItems="center" width="90%">
                     <Box display="flex" flex="2" flexDirection="column">
                         <Box display="flex" color="rgb(25, 19, 38)" fontSize="1.5rem" fontWeight="bold">
@@ -194,14 +220,14 @@ const Mainpage = ({ ctheme, connect_wallet }) => {
                                 </Box>
 
                             </Box>
-                            <Box display="flex" flex="1" width="90%" marginTop="3%">
+                            <Rate1 display="flex" flex="1" width="90%" marginTop="3%" >
                                 <Box display="flex" flex="1" justifyContent="flex-start" alignItems="center" color="black" fontWeight="bold" fontSize="1.5rem">{!stake ? 'Stake FAST' : 'Unstake'}</Box>
                                 <Box display="flex" flex="1" justifyContent="flex-end" alignItems="center">
-                                    <Box display="flex" width="80%" justifyContent="center" alignItems="center" borderRadius="30px" bgcolor="rgb(250, 249, 250)" border="1px solid #cd8a8a" fontWeight="bold" fontSize="15px">
-                                        1 xFAST = 11972 FAST
+                                    <Box display="flex" width="100%" justifyContent="center" alignItems="center" borderRadius="30px" bgcolor="rgb(250, 249, 250)" border="1px solid #cd8a8a" fontWeight="bold" fontSize="14px">
+                                        1 xFAST = {rate} FAST
                                     </Box>
                                 </Box>
-                            </Box>
+                            </Rate1>
                             <Box display="flex" flex="1" width="90%" marginTop="3%" position="relative">
                                 <Box display="flex" flex="1" color="black" borderRadius="8px" bgcolor="rgb(160, 250, 185)" width="100%" component="input" border="none" fontSize="20px" fontWeight="bold"
                                     sx={{
@@ -210,8 +236,8 @@ const Mainpage = ({ ctheme, connect_wallet }) => {
                                         set_amount(e.target.value);
                                     }} value={amount} placeholder={!stake ? '0 FAST' : '0 xFAST'}>
                                 </Box>
-                                <Box display="flex" position="absolute" width="30%" right="3%" alignItems="center" justifyContent="center" height="100%">
-                                    <Box display="flex" flex="1" alignItems="center" justifyContent="center" fontWeight="bold">Balance:</Box>
+                                <Box display="flex" position="absolute" width="50%" right="3%" alignItems="center" justifyContent="center" height="100%">
+                                    <Box display="flex" flex="1" alignItems="center" justifyContent="flex-end" fontWeight="bold">Balance:</Box>
                                     <Box display="flex" flex="1" component="button" height="50%" borderRadius="20px" bgcolor="rgb(43, 165, 100)" color="white" alignItems="center" fontWeight="bold" justifyContent="center" sx={{
                                         'cursor': 'pointer'
                                     }} onClick={() => {
@@ -277,6 +303,13 @@ const Mainpage = ({ ctheme, connect_wallet }) => {
     );
 };
 
+const Rate1 = styled(Box)`
+    flex-direction: row;
+    @media (max-width: 768px) {
+        flex-direction: column !important;
+    }
+`
+
 const MHeader = styled(Box)`
   display: flex;
   flex: 1;
@@ -303,6 +336,16 @@ const MContent = styled(Box)`
 const Staking = styled(Box)`
     background-color: ${({ ctheme }) => ctheme ? "#efeeee" : " #2c2b30"};
     box-shadow: rgb(25 19 38 / 10%) 0px 2px 12px -8px, rgb(25 19 38 / 5%) 0px 1px 1px;
+    width: 50%;
+    @media (max-width: 1000px) {
+        width: 65%;
+    }
+    @media (max-width: 800px) {
+        width: 80%;
+    }
+    @media (max-width: 600px) {
+        width: 95%;
+    }
 `
 
 const StyledContainer = styled(Box)`

@@ -22,7 +22,7 @@ import img_logo from '../../images/logo_mark1.png';
 import { lightTheme, darkTheme } from "../../theme/theme";
 // import { useHistory } from "react-router";
 
-const Header = ({ flag_sidebar, set_sidebar, ctheme , set_connect }) => {
+const Header = ({ flag_sidebar, set_sidebar, ctheme, set_connect }) => {
     // const history = useHistory()
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
@@ -33,7 +33,6 @@ const Header = ({ flag_sidebar, set_sidebar, ctheme , set_connect }) => {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: '20%',
         height: '50%',
         boxShadow: 24,
         p: 4,
@@ -55,40 +54,31 @@ const Header = ({ flag_sidebar, set_sidebar, ctheme , set_connect }) => {
         BinanceWallet: binance_wallet,
     };
     const walletConnectors = DESKTOP_CONNECTORS;
-    const { connector, account, active ,activate } = useWeb3React();
-    const handleConnect = async(currentConnector) => {
+    const { connector, account, active, activate } = useWeb3React();
+    const handleConnect = async (currentConnector) => {
         setOpen(false);
         activate(currentConnector);
         window.web3 = new Web3(window.web3.currentProvider);
+        await window.ethereum.enable();
         let accounts = await window.web3.eth.getAccounts();
         let temp = accounts[0];
-        set_account(temp.slice(0,4)+"..."+temp.slice(temp.length-5, temp.length-1));
+        set_account(temp.slice(0, 4) + "..." + temp.slice(temp.length - 5, temp.length - 1));
         // set_account_address();
     }
     // const set_account_address = () =>{
     //     let temp = account;
     //     set_account(temp.slice(0,4)+"..."+temp.slice(temp.length-5, temp.length-1));
     // }
-    const getShortTxHash = (txHash, margin = 4) => {
-        if (_.isEmpty(txHash)) {
-            return "";
-        }
-        return txHash.replace(
-            txHash.substring(margin + 2, txHash.length - margin),
-            "....",
-        );
-    }
 
 
-	useEffect(() => {
-        if(active === true)
-        {
+    useEffect(() => {
+        if (active === true) {
             set_connect(true);
         }
         else {
             set_connect(false);
         }
-	})
+    })
     return (
         <StyledContainer ctheme={ctheme ? 1 : 0} ltheme={lightTheme} dtheme={darkTheme}>
             {/* {theme? <div>123</div>:<div>KKK</div>} */}
@@ -97,16 +87,16 @@ const Header = ({ flag_sidebar, set_sidebar, ctheme , set_connect }) => {
                 <Logo_img>
                     <Box display="flex" alignItems="center"><img src={img_logo} width="25px" height="25px" style={{ marginLeft: "30px" }}></img></Box>
                     <Box display="flex" alignItems="center">{'\u00a0'}FastSwap</Box>
-                    
+
                 </Logo_img>
             </Box>
             <Box display="flex" flex="3"></Box>
             <Box display="flex" flex="1" alignItems="center" justifyContent="flex-end" marginRight="16px">
                 {
-                    account_address==='Connect'?<Btn_connect onClick={handleOpen}>Connect</Btn_connect>:
-                    <Btn_connect1 onClick={handleOpen}>{account_address}</Btn_connect1>
+                    account_address === 'Connect' ? <Btn_connect onClick={handleOpen}>Connect</Btn_connect> :
+                        <Btn_connect1 onClick={handleOpen}>{account_address}</Btn_connect1>
                 }
-                
+
             </Box>
             <Modal
                 open={open}
@@ -114,7 +104,7 @@ const Header = ({ flag_sidebar, set_sidebar, ctheme , set_connect }) => {
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
             >
-                <Box sx={style1}>
+                <ConnectW sx={style1}>
                     <Box sx={{
                         height: '68px',
                         display: 'flex',
@@ -193,11 +183,25 @@ const Header = ({ flag_sidebar, set_sidebar, ctheme , set_connect }) => {
                             </Box>
                         </Box>
                     </Box>
-                </Box>
+                </ConnectW>
             </Modal>
         </StyledContainer>
     );
 };
+
+
+const ConnectW = styled(Box)`
+    width: 30%;
+    @media (max-width: 1000px) {
+        width: 40%;
+    }
+    @media (max-width: 800px) {
+        width: 50%;
+    }
+    @media (max-width: 600px) {
+        width: 60%;
+    }
+`
 
 const Connect_btn_letter = styled(Box)`
 @media (max-width: 400px) {

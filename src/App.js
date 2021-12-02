@@ -39,7 +39,7 @@ function App() {
           <div className="sidebar2">
             <Sidebar flag_sidebar={flag_sidebar} ctheme={ctheme} setTheme={setTheme}></Sidebar>
           </div>
-          <Mainpage ctheme={ctheme} connect_wallet={connect_wallet}></Mainpage>
+          <Mainpage ctheme={ctheme} connect_wallet={connect_wallet} ></Mainpage>
         </div>
       </Web3ReactProvider>
     </>

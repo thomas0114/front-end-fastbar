@@ -34,23 +34,23 @@ task("accounts", "Prints the list of accounts", async () => {
   },
   networks: {
     localhost: {
-      url: "http://127.0.0.1/",
+      url: "http://127.0.0.1:8545",
       gasPrice: 20000000000,
-      accounts: ['0xc118560a8056a777833df211c00eb99cb1284e39197e55d7363556cc3369b80e']
+      accounts: [process.env.PRIVATEKEY]
     },
     hardhat: {
     },
     testnet: {
-      url: "https://data-seed-prebsc-1-s1.binance.org/",
+      url: "https://data-seed-prebsc-1-s1.binance.org:8545",
       chainId: 97,
       gasPrice: 20000000000,
-      accounts: ['0xc118560a8056a777833df211c00eb99cb1284e39197e55d7363556cc3369b80e']
+      accounts: [process.env.PRIVATEKEY]
     },
     mainnet: {
       url: "https://bsc-dataseed.binance.org/",
       chainId: 56,
       gasPrice: 20000000000,
-      accounts: ['0xc118560a8056a777833df211c00eb99cb1284e39197e55d7363556cc3369b80e']
+      accounts: [process.env.PRIVATEKEY]
     }
   },
   solidity: {
@@ -65,7 +65,7 @@ task("accounts", "Prints the list of accounts", async () => {
       //   version: "0.7.3"
       // },
       {
-        version: "0.6.0"
+        version: "0.8.0"
       }
     ],
     settings: {
