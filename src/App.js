@@ -17,6 +17,7 @@ function App() {
   const [flag_sidebar, set_sidebar] = useState(false);
   const [ctheme, setTheme] = useState(true);
   const [connect_wallet, set_connect] = useState(false);
+  const [apr, set_apr] = useState(0);
   const styles = {
     contentDiv: {
       display: "flex",
@@ -31,7 +32,7 @@ function App() {
   return (
     <>
       <Web3ReactProvider getLibrary={getLibrary}>
-        <Header flag_sidebar={flag_sidebar} set_sidebar={set_sidebar} ctheme={ctheme} set_connect={set_connect}></Header>
+        <Header flag_sidebar={flag_sidebar} set_sidebar={set_sidebar} ctheme={ctheme} set_connect={set_connect} set_apr={set_apr}></Header>
         <div style={styles.contentDiv} >
           <div className="sidebar1" style={{ display: "none" }} >
             <Sidebar flag_sidebar={1} ctheme={ctheme} setTheme={setTheme}></Sidebar>
@@ -39,7 +40,7 @@ function App() {
           <div className="sidebar2">
             <Sidebar flag_sidebar={flag_sidebar} ctheme={ctheme} setTheme={setTheme}></Sidebar>
           </div>
-          <Mainpage ctheme={ctheme} connect_wallet={connect_wallet} ></Mainpage>
+          <Mainpage ctheme={ctheme} connect_wallet={connect_wallet} apr={apr} set_apr={set_apr}></Mainpage>
         </div>
       </Web3ReactProvider>
     </>

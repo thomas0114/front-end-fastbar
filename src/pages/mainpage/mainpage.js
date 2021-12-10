@@ -1,5 +1,5 @@
 import React from "react";
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Box, Input, Modal } from '@material-ui/core'
 import styled from 'styled-components';
 
@@ -10,15 +10,18 @@ import leopard1 from '../../images/leopard1.png';
 import { lightTheme, darkTheme } from "../../theme/theme";
 import Web3 from 'web3'
 import { ethers } from 'ethers'
+import { useWeb3React } from '@web3-react/core';
 import { FASTBAR, FASTTOKEN } from '../../utils/abi';
 
-
-const Mainpage = ({ ctheme, connect_wallet}) => {
+const Mainpage = ({ ctheme, connect_wallet, apr, set_apr}) => {
+    const xfastbar = '0xC6C76947953134160CA40de6015EAdfC864BDd1a';
+    const fastbar = '0x1160fe27e5c39284f6aebdec4ad2c1dc6f118d2b';
+    // const { account, library, chainId } = useWeb3React()
+    // const xfastContract = useMemo(() => library ? new ethers.Contract(xfastbar, FASTTOKEN, library.getSigner()) : null, [library])
+    // const fastbarContract = useMemo(() => library ? new ethers.Contract(fastbar, FASTBAR, library.getSigner()) : null, [library])
     let web3;
     const [stake, set_stake] = useState(false)
     const [amount, set_amount] = useState('');
-    const token_address = '0xC6C76947953134160CA40de6015EAdfC864BDd1a';
-    const token_fast = '0x1160fe27e5c39284f6aebdec4ad2c1dc6f118d2b';
     const style1 = {
         position: 'absolute',
         top: '50%',
@@ -73,14 +76,14 @@ const Mainpage = ({ ctheme, connect_wallet}) => {
             window.web3 = new Web3(window.web3.currentProvider);
             await window.ethereum.enable();
             const accounts = await window.web3.eth.getAccounts();
-            var stake_fast = new window.web3.eth.Contract(FASTBAR, token_address);
-            var fast = new window.web3.eth.Contract(FASTTOKEN, token_fast);
+            const stake_fast = new window.web3.eth.Contract(FASTBAR, xfastbar);
+            const fast = new window.web3.eth.Contract(FASTTOKEN, fastbar);
             let temp = (amount * Math.pow(10, 18)).toString(16);
             let temp1 = (amount * Math.pow(10, 18));
             let stake1 = '0x' + temp;
             console.log(stake1);
             if (!stake) {
-                await fast.methods.approve(token_address, stake1).send({ from: accounts[0] }).then(async (res) => {
+                await fast.methods.approve(xfastbar, stake1).send({ from: accounts[0] }).then(async (res) => {
                     set_process("Success!");
                     // setTimeout(()=>{
                     //     handleClose();
@@ -121,9 +124,19 @@ const Mainpage = ({ ctheme, connect_wallet}) => {
                 });
             }
             const temp_xfast = await stake_fast.methods.totalSupply().call();
-            const temp_fast = await fast.methods.balanceOf(accounts[0]).call();
+            const temp_fast = await fast.methods.balanceOf(xfastbar).call();
             const temp_rate = (window.web3.utils.fromWei(temp_xfast, 'ether'))/(window.web3.utils.fromWei(temp_fast, 'ether'));
-            set_rate(temp_rate.toFixed(9));
+            set_rate(temp_rate);
+            // APR
+            var temp_apr , bonded_ratio;
+            const inflation = 0.1;   // 10%
+            const tax = 0.02;   // 2%
+            var total_fast, total_xfast;
+            total_fast = await fast.methods.totalSupply().call();
+            total_xfast = await stake_fast.methods.totalSupply().call();
+            bonded_ratio = (window.web3.utils.fromWei(total_xfast, 'ether')) / (window.web3.utils.fromWei(total_fast, 'ether')) * 100;
+            temp_apr = (inflation * (1-tax) * bonded_ratio)*100;
+            set_apr(temp_apr);
         }
 
     }
@@ -138,8 +151,8 @@ const Mainpage = ({ ctheme, connect_wallet}) => {
             window.web3 = new Web3(window.web3.currentProvider);
             await window.ethereum.enable();
             const accounts = await window.web3.eth.getAccounts();
-            var stake_fast = new window.web3.eth.Contract(FASTBAR, token_address)
-            var fast = new window.web3.eth.Contract(FASTTOKEN, token_fast);
+            var stake_fast = new window.web3.eth.Contract(FASTBAR, xfastbar)
+            var fast = new window.web3.eth.Contract(FASTTOKEN, fastbar);
             if (!stake) {
                 max_fast = await fast.methods.balanceOf(accounts[0]).call();
                 let max_temp = window.web3.utils.fromWei(max_fast, 'ether');
@@ -154,23 +167,43 @@ const Mainpage = ({ ctheme, connect_wallet}) => {
 
     }
 
-
-
     useEffect(async() => {
-        if(connect_wallet)
-        {
-            window.web3 = new Web3(window.web3.currentProvider);
-            const accounts = await window.web3.eth.getAccounts();
-            const stake_fast = new window.web3.eth.Contract(FASTBAR, token_address);
-            const fast = new window.web3.eth.Contract(FASTTOKEN, token_fast);
-            const temp_xfast = await stake_fast.methods.totalSupply().call();
-            const temp_fast = await fast.methods.balanceOf(accounts[0]).call();
-            const temp_rate = (window.web3.utils.fromWei(temp_xfast, 'ether'))/(window.web3.utils.fromWei(temp_fast, 'ether'));
-            set_rate(temp_rate.toFixed(9));
-        }
-        else{
-            set_rate(0);
-        }
+        window.web3 = new Web3(window.web3.currentProvider);
+        const accounts = await window.web3.eth.getAccounts();
+        const stake_fast = new window.web3.eth.Contract(FASTBAR, xfastbar);
+        const fast = new window.web3.eth.Contract(FASTTOKEN, fastbar);
+        const temp_xfast = await stake_fast.methods.totalSupply().call();
+        const temp_fast = await fast.methods.balanceOf(xfastbar).call();
+        const temp_rate = (window.web3.utils.fromWei(temp_xfast, 'ether'))/(window.web3.utils.fromWei(temp_fast, 'ether'));
+        set_rate(temp_rate);
+
+
+        //apr
+
+        var temp_apr , bonded_ratio;
+        const inflation = 0.1;   // 10%
+        const tax = 0.02;   // 2%
+        var total_fast, total_xfast;
+        total_fast = await fast.methods.totalSupply().call();
+        total_xfast = await stake_fast.methods.totalSupply().call();
+        bonded_ratio = (window.web3.utils.fromWei(total_xfast, 'ether')) / (window.web3.utils.fromWei(total_fast, 'ether')) * 100;
+        temp_apr = (inflation * (1-tax) * bonded_ratio)*100;
+        set_apr(temp_apr);
+
+        // if(connect_wallet)
+        // {
+        //     window.web3 = new Web3(window.web3.currentProvider);
+        //     const accounts = await window.web3.eth.getAccounts();
+        //     const stake_fast = new window.web3.eth.Contract(FASTBAR, xfastbar);
+        //     const fast = new window.web3.eth.Contract(FASTTOKEN, token_fast);
+        //     const temp_xfast = await stake_fast.methods.totalSupply().call();
+        //     const temp_fast = await fast.methods.balanceOf(xfastbar).call();
+        //     const temp_rate = (window.web3.utils.fromWei(temp_xfast, 'ether'))/(window.web3.utils.fromWei(temp_fast, 'ether'));
+        //     set_rate(temp_rate);
+        // }
+        // else{
+        //     set_rate(0);
+        // }
     }, [connect_wallet, set_rate])
     return (
         <StyledContainer ctheme={ctheme ? 1 : 0} ltheme={lightTheme} dtheme={darkTheme}>
@@ -199,7 +232,7 @@ const Mainpage = ({ ctheme, connect_wallet}) => {
                         <Box display="flex" flexDirection="column" width="100%" bgcolor="rgb(110, 160, 190)" borderRadius="8px" width="100%" alignItems="center">
                             <Box display="flex" flex="1" width="90%" marginTop="3%">
                                 <Box display="flex" flex="1" justifyContent="flex-start" alignItems="center" color="black" fontWeight="bold" fontSize="1.5rem">Staking APR</Box>
-                                <Box display="flex" flex="1" justifyContent="flex-end" alignItems="center" color="black" fontWeight="bold" fontSize="1.9rem">14.17%</Box>
+                                <Box display="flex" flex="1" justifyContent="flex-end" alignItems="center" color="black" fontWeight="bold" fontSize="1.9rem">{apr.toFixed(3)}%</Box>
                             </Box>
                             <Box display="flex" flex="1" width="90%" marginTop="3%" marginBottom="3%">
                                 <Box display="flex" flex="1" justifyContent="flex-start" alignItems="center">

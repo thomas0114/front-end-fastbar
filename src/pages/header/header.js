@@ -20,9 +20,11 @@ import binance from '../../images/BinanceWallet.png'
 import trust from '../../images/TrustWallet.png'
 import img_logo from '../../images/logo_mark1.png';
 import { lightTheme, darkTheme } from "../../theme/theme";
+import { FASTBAR, FASTTOKEN } from "../../utils/abi";
 // import { useHistory } from "react-router";
 
-const Header = ({ flag_sidebar, set_sidebar, ctheme, set_connect }) => {
+const Header = ({ flag_sidebar, set_sidebar, ctheme, set_connect, set_apr}) => {
+    
     // const history = useHistory()
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
@@ -63,6 +65,22 @@ const Header = ({ flag_sidebar, set_sidebar, ctheme, set_connect }) => {
         let accounts = await window.web3.eth.getAccounts();
         let temp = accounts[0];
         set_account(temp.slice(0, 4) + "..." + temp.slice(temp.length - 5, temp.length - 1));
+
+        const token_address = '0xC6C76947953134160CA40de6015EAdfC864BDd1a';
+        const token_fast = '0x1160fe27e5c39284f6aebdec4ad2c1dc6f118d2b';
+        const stake_fast = new window.web3.eth.Contract(FASTBAR, token_address);
+        const fast = new window.web3.eth.Contract(FASTTOKEN, token_fast);
+
+        //apr
+        var temp_apr , bonded_ratio;
+        const inflation = 0.1;   // 10%
+        const tax = 0.02;   // 2%
+        var total_fast, total_xfast;
+        total_fast = await fast.methods.totalSupply().call();
+        total_xfast = await stake_fast.methods.totalSupply().call();
+        bonded_ratio = (window.web3.utils.fromWei(total_xfast, 'ether')) / (window.web3.utils.fromWei(total_fast, 'ether')) * 100;
+        temp_apr = (inflation * (1-tax) * bonded_ratio)*100;
+        set_apr(temp_apr);
         // set_account_address();
     }
     // const set_account_address = () =>{
@@ -200,6 +218,15 @@ const ConnectW = styled(Box)`
     }
     @media (max-width: 600px) {
         width: 60%;
+    }
+    @media (max-height: 850px) {
+        height: 60% !important;
+    }
+    @media (max-height: 700px) {
+        height: 70% !important;
+    }
+    @media (max-height: 600px) {
+        height: 75% !important;
     }
 `
 
